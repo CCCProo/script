@@ -113,81 +113,98 @@ local function collect_balloon()
 end
 
 while task.wait() do
-    local buttons = game.Workspace.Tycoons[player_local.Name].Buttons
 
     local drop
 
-    if farm then
-        if game.Workspace.Tycoons:FindFirstChild(player_local.Name) then
-            local balance = get_balance().leaderstats.Money.Value
+    local success, _ = pcall(function()
 
-            local collect_part = game.Workspace.Tycoons[player_local.Name].Auxiliary.Collector.Collect.CFrame
-            
-            local all_buttons = 0
-            for num, ab in ipairs(buttons:GetChildren()) do
-                all_buttons += 1
-            end
+        local player_local = game.Players.LocalPlayer
+        local player_work = player_local.Character.HumanoidRootPart
 
-            if all_buttons == 0 and game.Workspace.Tycoons[player_local.Name]:FindFirstChild("Auxiliary") then
-                
-                rebith = true
-                local prox = game.workspace.Tycoons[player_local.Name].Auxiliary.Rebirth.Button
+        if farm then
 
-                player_work.CFrame = prox.CFrame
+            if game.Workspace.Tycoons:FindFirstChild(player_local.Name) then
 
-                rebith = true
-                task.wait(20)
+                if game.Workspace.Tycoons[player_local.Name].Auxiliary:FindFirstChild("Collector") then
+                        
+                    local buttons = game.Workspace.Tycoons[player_local.Name].Buttons
+                    local balance = get_balance().leaderstats.Money.Value
 
-                prox.ProximityPrompt:InputHoldBegin()
-                task.wait(prox.ProximityPrompt.HoldDuraction)
-                prox.ProximityPrompt:InputHoldEnd()
+                    local all_buttons = 0
+                    for num, ab in ipairs(buttons:GetChildren()) do
+                        all_buttons += 1
+                    end
 
-            end
-            
-            if balance < 25000 then
+                    local collect_part = game.Workspace.Tycoons[player_local.Name].Auxiliary.Collector.Collect.CFrame
+                    local success, _ = pcall(function()
+                        if all_buttons == 0 and game.Workspace.Tycoons[player_local.Name]:FindFirstChild("Auxiliary") and game.Workspace.Tycoons[player_local.Name].Auxiliary:FindFirstChild("Rebirth") then
+                            
+                            rebith = true
+                            local prox = game.workspace.Tycoons[player_local.Name].Auxiliary.Rebirth.Button
 
-                coroutine.wrap(function()
-                    collect_balloon()
-                end)()
+                            player_work.CFrame = prox.CFrame
 
-            end
+                            rebith = true
+                            task.wait(20)
 
-            for _, y in ipairs(buttons:GetChildren()) do
+                            prox.ProximityPrompt:InputHoldBegin()
+                            task.wait(prox.ProximityPrompt.HoldDuraction)
+                            prox.ProximityPrompt:InputHoldEnd()
 
-                if y.Name:find("Traps") then drop = y end
-                if y.Name:find("Dropper") then
-                    drop = y
-                end
-
-            end
-
-            local all_buttons = 0
-            for num, ab in ipairs(buttons:GetChildren()) do
-                all_buttons += 1
-            end
-
-            for _, i in ipairs(buttons:GetChildren()) do
-
-                if drop then
-                    i = drop
-                end
-                
-                if i:FindFirstChild("Button") then
-                    local price = tonumber(cm(i.Button.ButtonUI.TextLabel2.Text))   
-                    
-
-                    if farm then
-                        if balance >= price then
-                            player_work.CFrame = i["Button"].CFrame
-                            break
-                        else
-                            player_work.CFrame = collect_part
                             task.wait(3)
+                        end
+                    end)
+
+                    if all_buttons == 0 and game.Workspace.Tycoons[player_local.Name]:FindFirstChild("Auxiliary") and game.Workspace.Tycoons[player_local.Name].Auxiliary:FindFirstChild("Rebirth")  then
+                        if success then return end
+                    end
+                    
+                    if balance < 25000 then
+
+                        coroutine.wrap(function()
+                            collect_balloon()
+                        end)()
+
+                    end
+
+                    for _, y in ipairs(buttons:GetChildren()) do
+
+                        if y.Name:find("Traps") then drop = y end
+                        if y.Name:find("Dropper") then
+                            drop = y
+                        end
+
+                    end
+
+                    local all_buttons = 0
+                    for num, ab in ipairs(buttons:GetChildren()) do
+                        all_buttons += 1
+                    end
+
+                    for _, i in ipairs(buttons:GetChildren()) do
+
+                        if drop then
+                            i = drop
+                        end
+                        
+                        if i:FindFirstChild("Button") then
+                            local price = tonumber(cm(i.Button.ButtonUI.TextLabel2.Text))   
+                            
+                            if farm then
+                                if balance >= price then
+                                    task.wait(0.3)
+                                    player_work.CFrame = i["Button"].CFrame
+                                    break
+                                else
+                                    player_work.CFrame = collect_part
+                                    task.wait(2)
+                                end
+                            end
                         end
                     end
                 end
             end
+                task.wait(0.2)
         end
-            task.wait(2)
-    end
+    end)
 end
