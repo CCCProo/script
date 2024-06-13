@@ -137,6 +137,14 @@ while task.wait() do
 
                     local collect_part = game.Workspace.Tycoons[player_local.Name].Auxiliary.Collector.Collect.CFrame
                     local success, _ = pcall(function()
+
+                        if not game.Workspace.Tycoons[player_local.Name]:FindFirstChild("Auxiliary") and not game.Workspace.Tycoons[player_local.Name].Auxiliary:FindFirstChild("Rebirth") then
+                            local args = {
+                                [1] = "Darkness"
+                            }
+
+                            game:GetService("Players").LocalPlayer:WaitForChild("RemoteEvent"):FireServer(unpack(args))
+                        end
                         if all_buttons == 0 and game.Workspace.Tycoons[player_local.Name]:FindFirstChild("Auxiliary") and game.Workspace.Tycoons[player_local.Name].Auxiliary:FindFirstChild("Rebirth") then
                             
                             rebith = true
