@@ -7,14 +7,10 @@ local function handleChatMessage(player, message)
 	
 	local banned_or_kicked = false
 	for _, id in all_admin do
-		print(player.UserId)
-		print(id)
-		print(tonumber(player.UserId) == tonumber(id))
 		if tonumber(player.UserId) == tonumber(id) then
 			banned_or_kicked = true
 		end
 	end
-	print(banned_or_kicked)
 	if not banned_or_kicked then return end
 	local lowerMessage = string.lower(message)
 	if string.sub(lowerMessage, 1, 3) == "ban" then
@@ -67,8 +63,6 @@ end
 game.Players.PlayerAdded:Connect(function(player)
 	local plr_bans = bans_ds:GetAsync(player.UserId)
 	if plr_bans then
-		print(tonumber(os.time()))
-		print(tonumber(plr_bans['timestamp']))
 		if tonumber(os.time()) < tonumber(plr_bans['timestamp']) then
 			player:Kick(plr_bans['reason'])
 		end
