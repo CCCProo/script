@@ -5,7 +5,6 @@ local Character = player.Character
 
 local RunService = game:GetService('RunService')
 
--- Функция для проверки, есть ли преграды между камерой и объектом
 local function true_rey(part)
 	local Parameters = RaycastParams.new()
 	Parameters.FilterDescendantsInstances = {Character, part}
@@ -15,16 +14,15 @@ local function true_rey(part)
 
 	if OnScreen then
 		if workspace:Raycast(Camera.CFrame.Position, part.Position - Camera.CFrame.Position, Parameters) then
-			return true -- Преграда есть
+			return true 
 		else
-			return false -- Преграды нет
+			return false
 		end
 	else
 		return false -- Объект не на экране
 	end
 end
 
--- Функция проверки и перемещения объектов
 local function check_all(part, kk)
 	if part:IsA("Model") and part:FindFirstChild("Humanoid") and player.Name ~= part.Name then
 		local PrimaryPart = part.PrimaryPart
@@ -47,7 +45,6 @@ local function check_all(part, kk)
 	end
 end
 
--- Основной цикл, проверяющий все объекты в workspace и Enemies
 RunService.RenderStepped:Connect(function()
 	for _, part in ipairs(workspace:GetChildren()) do
 		check_all(part, true)
