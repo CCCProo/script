@@ -19,7 +19,7 @@ local function true_rey(part)
 			return false
 		end
 	else
-		return false -- Объект не на экране
+		return false
 	end
 end
 
