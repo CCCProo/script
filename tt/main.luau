@@ -1,61 +1,39 @@
-local RunService = game:GetService("RunService")
-local work = game:GetService("Workspace")
+local BadgeService = game:GetService("BadgeService")
+local BadgeId = 1403809845328587 -- Замените на свой ID бейджа
 
-local build_pack = work.BuildPack
+local function awardBadge(player)
+    if not player then
 
-local all_gold = build_pack.Resources
-
-local player = game.Players.LocalPlayer
-local character = player.Character
-
-local farm = false
-
-local function create_gui()
-    local button
-
-    local who = "GUI"
-
-    local spawnFade = game.Players.LocalPlayer.PlayerGui:FindFirstChild(who)
-
-    if not spawnFade then
-        spawnFade = Instance.new("ScreenGui")
-        spawnFade.Name = who
-        spawnFade.Parent = game.Players.LocalPlayer.PlayerGui
+        return
     end
 
-    if not spawnFade:FindFirstChild("Button") then
-        button = Instance.new("TextButton")
-        button.Parent = spawnFade
-
-        button.Position = UDim2.new(0, 20, 0.81, 0)
-        button.Size = UDim2.new(0.2, 0, 0.1, 0)
-    else
-        button = spawnFade:FindFirstChild("Button")
-    end
-    button.MouseButton1Click:Connect(function()
-        farm = not farm
-        if farm then
-            button.Text = "Работает"
-        else 
-            button.Text = "Не работает"
-        end
+    -- Проверяем, есть ли у игрока уже этот бейдж
+    local hasBadge, hasBadgeErr = pcall(function()
+        return BadgeService:UserHasBadgeAsync(player.UserId, BadgeId)
     end)
-end
+    
+    if hasBadgeErr then
 
-create_gui()
-
-local function collect_all_gold()
-    if farm then
-
-        for _, gold in ipairs(all_gold:GetChildren()) do
-
-            if farm then
-                character.PrimaryPart.CFrame = gold.CFrame
-            end
-        end
-
+        return
     end
 
+    if hasBadge then
+        return
+    end
+
+    -- Если у игрока нет бейджа, пытаемся его выдать
+    local success, awardErr = pcall(function()
+        BadgeService:AwardBadge(player.UserId, BadgeId)
+    end)
+ 
 end
 
-RunService.Stepped:Connect(collect_all_gold)
+script.Parent.Touched:Connect(function(part)
+    local character = part.Parent
+    if character and character:FindFirstChild("Humanoid") then
+        local player = game.Players:GetPlayerFromCharacter(character)
+        if player then
+            awardBadge(player)
+        end
+    end
+end)
