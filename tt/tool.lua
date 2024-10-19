@@ -1,33 +1,23 @@
-local parent = script.Parent
+local animation_id = 83185031265740
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+local animation = Instance.new("Animation")
+animation.AnimationId = "rbxassetid://" .. tostring(animation_id)
 
-local who_parent
-local isEquipped = false
+local isPlaying = false
 
-local function onTriggered(player)
-	if not isEquipped then return end  -- Проверяем, надет ли инструмент
+script.Parent.MouseButton1Up:Connect(function()
+	print(isPlaying)
+	if not isPlaying then
+		isPlaying = true
 
-	who_parent = parent
+		local animator = humanoid:FindFirstChildOfClass("Animator")
+		local animationTrack = animator:LoadAnimation(animation)
+		animationTrack:Play()
 
-	if not who_parent then return end
-
-	if who_parent.Value.Value == 2 then return end
-
-	if who_parent.Value.Value == 3 then 
-		player:Kick("Вы словили Вирус!") 
-		return 
+		animationTrack.Stopped:Connect(function()
+			isPlaying = false
+		end)
 	end
-
-	player:Kick("Вы прошли игру!")
-end
-
-local function onEquipped()
-	isEquipped = true
-	workspace.Comp.ProximityPrompt.Triggered:Connect(onTriggered)
-end
-
-local function onUnequipped()
-	isEquipped = false
-end
-
-parent.Equipped:Connect(onEquipped)
-parent.Unequipped:Connect(onUnequipped)
+end)
