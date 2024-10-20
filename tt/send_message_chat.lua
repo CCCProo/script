@@ -50,7 +50,12 @@ local players = game.Players
 local player = players.LocalPlayer
 
 local TextChatService = game:GetService("TextChatService")
-local TextChannels = TextChatService:WaitForChild("TextChannels")
+local TextChannels
+
+repeat
+	TextChannels = TextChatService:FindFirstChild("TextChannels")
+	task.wait(1)
+until TextChannels
 
 game.ReplicatedStorage.SendMessage.OnClientEvent:Connect(function(player_gets:Player, value: IntValue)
 	
