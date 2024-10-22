@@ -1,64 +1,108 @@
---==============Северный скрипт================
---=======Помещать в ServerScript Service=======
+local Tool = script.Parent
+local partTemplate = game.ReplicatedStorage:WaitForChild("Part")
+local throwSpeed = 25
+local upwardForce = 50 
+local rotationSpeed = 10
 
-local datastore = game:GetService("DataStoreService")
-local CashSave = datastore:GetDataStore("CashLeaderstats")
+local time_set = true
 
-local activePlayers = {}
+local TweenService = game:GetService("TweenService")
 
-local function add_cash_message(player: Player)
-	activePlayers[player] = true
-
-	while task.wait(3600) do
-		
-		local zp = 10000
-		
-		if not activePlayers[player] then return end
-
-			player.leaderstats.Cash.Value += zp
-			
-			print("Мы выдали те 250 монет "..player.DisplayName)
-
-			for _, player_get in ipairs(game.Players:GetPlayers()) do
-				game.ReplicatedStorage.SendMessage:FireClient(player_get, player, zp)
-			end
+local function killOnTouch(hit, player)
+	print(hit.Name)
+	if hit.Parent and hit.Parent.Name ~= player.Name then
+		local humanoid = hit.Parent:FindFirstChild("Humanoid")
+		if humanoid then
+			humanoid.Health = 0
 		end
 	end
+end
 
-game.Players.PlayerAdded:Connect(function(player)
+local function randomRotation(part)
+	part.CFrame = part.CFrame * CFrame.fromEulerAnglesXYZ(
+		math.rad(rotationSpeed),
+		math.rad(rotationSpeed),
+		math.rad(rotationSpeed)
+	)
+end
 
-	local leaderstats = Instance.new("Folder", player)
-	leaderstats.Name = "leaderstats"
+local function tiltPart(part: Part)
+	print(part.Orientation)
 
-	local cash = Instance.new("IntValue", leaderstats)
-	
-	cash.Name = "Cash"
-	cash.Value = CashSave:GetAsync(player.UserId) or 0
+	local targetOrientation = Vector3.new(
+		partTemplate.Orientation.Y, 
+		part.Orientation.Y,  
+		partTemplate.Orientation.Z  
+	)
 
-	add_cash_message(player)
-end)
+	local targetPosition = Vector3.new(part.Position.X, (workspace.Baseplate.Position.Y + workspace.Baseplate.Size.Y / 2 + (part.Size.Y / 2)), part.Position.Z)
 
-game.Players.PlayerRemoving:Connect(function(player) 
-	activePlayers[player] = nil 
-	CashSave:SetAsync(player.UserId, player.leaderstats.Cash.Value)
-end)
+	print(targetPosition)
+	print(workspace.Baseplate.Position)
 
---==============Локальный скрипт================
---=======Помещать в StarterPlayer Service=======
+	local tweenInfo = TweenInfo.new(1, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
 
-local players = game.Players
-local player = players.LocalPlayer
+	local orientationTween = TweenService:Create(part, tweenInfo, {Orientation = targetOrientation})
+	local positionTween = TweenService:Create(part, tweenInfo, {Position = targetPosition})
 
-local TextChatService = game:GetService("TextChatService")
-local TextChannels
+	orientationTween:Play()
+	positionTween:Play()
+end
 
-repeat
-	TextChannels = TextChatService:FindFirstChild("TextChannels")
-	task.wait(1)
-until TextChannels
 
-game.ReplicatedStorage.SendMessage.OnClientEvent:Connect(function(player_gets:Player, value: IntValue)
-	
-	TextChannels.RBXSystem:DisplaySystemMessage(player_gets.DisplayName .. " получил часовую зарплату в размере ".. value .. " монет")
-	
+local function throwMesh(player)
+	local character = player.Character
+	if character then
+		local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+		if humanoidRootPart then
+
+			local part = partTemplate:Clone()
+			part.CFrame = humanoidRootPart.CFrame * CFrame.new(0, 0, -5)  
+			part.Parent = workspace
+
+			part.Touched:Connect(function(hit)
+				killOnTouch(hit, player)
+			end)
+
+			local bodyVelocity = Instance.new("BodyVelocity", part)
+			bodyVelocity.Velocity = humanoidRootPart.CFrame.LookVector * throwSpeed + Vector3.new(0, upwardForce, 0)
+			bodyVelocity.MaxForce = Vector3.new(1000, 1000, 1000)
+
+			part.Touched:Connect(function(hit)
+				if hit:IsA("BasePart") and hit.Name == "Baseplate" then
+
+					bodyVelocity.Velocity = Vector3.new(0, 0, 0) 
+					part.Anchored = true 
+
+					task.wait(0.1)
+					if bodyVelocity then
+						bodyVelocity:Destroy()
+					end
+
+					tiltPart(part)
+				end
+			end)
+
+
+			local rotationConnection
+			rotationConnection = game:GetService("RunService").Stepped:Connect(function()
+				if part and part.Parent and not part.Anchored then  
+					randomRotation(part)
+				else
+					rotationConnection:Disconnect()
+				end
+			end)
+		end
+	end
+end
+
+Tool.Activated:Connect(function()
+	local player = game.Players:GetPlayerFromCharacter(Tool.Parent)
+	if player and time_set then
+		throwMesh(player)
+		time_set = false
+		
+		task.wait(10)
+		time_set = true
+	end
 end)
