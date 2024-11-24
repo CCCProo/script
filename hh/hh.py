@@ -14,11 +14,12 @@ with open("cookies.txt", "r", encoding="utf-8") as file:
     cookies = [line.strip() for line in file if line.strip()]
 
 options = webdriver.ChromeOptions()
-options.add_argument("--headless")
+options.add_argument("--headless=new")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
+options.add_argument("--disable-extensions")
 options.add_argument("--disable-gpu")
-options.add_argument("--log-level=3")
-options.add_argument("--start-maximized")
-
+options.add_argument("--remote-debugging-port=9222")
 
 driver = webdriver.Chrome(options=options)
 
@@ -45,13 +46,12 @@ try:
                 favorite_button = wait.until(EC.element_to_be_clickable((By.ID, "toggle-favorite")))
                 favorite_button.click()
 
-        except Exception as e:
-            print(f"Error {e}")
+        except Exception as e: pass
 
         time.sleep(1) 
 
 except Exception as e:
-    print(f"Произошла ошибка: {e}")
+    pass
 
 finally:
     driver.quit()
