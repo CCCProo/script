@@ -1,52 +1,48 @@
-local MarketplaceService = game:GetService("MarketplaceService")
-local BadgeService = game:GetService("BadgeService")
 local Players = game:GetService("Players")
 
-local badge_ids = {44, 44, 44}
-local ugc_id = 0 
-local already_prompted = {} 
+local function setupCharacter(character)
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	while not humanoid or humanoid.Health <= 0 do
+		character.ChildAdded:Wait()
+		humanoid = character:FindFirstChildOfClass("Humanoid")
+	end
+
+	for _, part in ipairs(character:GetDescendants()) do
+		if part:IsA("BasePart") then
+			part.CanCollide = false
+			part.CollisionGroup = "Players"
+		end
+	end
+
+	if character:FindFirstChild("HumanoidRootPart") then
+		local rootPart = character.HumanoidRootPart
+
+		humanoid:SetAttribute("MaxSpeed", 50)
+
+		local lastPosition = rootPart.Position
+		game:GetService("RunService").Heartbeat:Connect(function()
+			local currentPosition = rootPart.Position
+			local velocity = (currentPosition - lastPosition) * 60
+			lastPosition = currentPosition
+
+			if velocity.Magnitude > 100 then
+				rootPart.Velocity = Vector3.new(0, 0, 0)
+				rootPart.AssemblyLinearVelocity = Vector3.new(0, 0, 0)
+			end
+		end)
+	end
+end
+
+game:GetService("PhysicsService"):RegisterCollisionGroup("Players")
+game:GetService("PhysicsService"):CollisionGroupSetCollidable("Players", "Players", false)
 
 Players.PlayerAdded:Connect(function(player)
-
-    local function checkBadges()
-
-        if already_prompted[player] then return end 
-
-        local hasAllBadges = true
-
-        for _, badgeId in ipairs(badge_ids) do
-
-            local hasBadge = BadgeService:UserHasBadgeAsync(player.UserId, badgeId)
-            if not hasBadge then
-
-                hasAllBadges = false
-                break
-            end
-
-        end
-
-        if hasAllBadges then
-
-            MarketplaceService:PromptPurchase(player, ugc_id)
-            already_prompted[player] = true
-
-        end
-    end
-
-    local connection = nil
-    connection = player.CharacterAdded:Connect(function()
-
-        while task.wait(1) do
-
-            if not player:IsDescendantOf(Players) then
-
-                connection:Disconnect()
-                already_prompted[player] = nil
-                return
-
-            end
-            checkBadges()
-
-        end
-    end)
+	player.CharacterAdded:Connect(setupCharacter)
 end)
+
+for _, player in ipairs(Players:GetPlayers()) do
+	if player.Character then
+		setupCharacter(player.Character)
+	end
+	player.CharacterAdded:Connect(setupCharacter)
+end
